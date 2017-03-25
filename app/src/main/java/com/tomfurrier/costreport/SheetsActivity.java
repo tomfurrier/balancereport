@@ -13,6 +13,7 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.DateTime;
 import com.google.api.client.util.ExponentialBackOff;
 
+import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.SheetsScopes;
 
 import com.google.api.services.sheets.v4.model.*;
@@ -429,6 +430,19 @@ public class SheetsActivity extends Activity
                 AddSheetResponse addSheetResponse = response.getReplies().get(0).getAddSheet();
                 results.add("operation: sheet added with title: " + formattedDate +
                         ", id: " + addSheetResponse.getProperties().getSheetId());
+
+
+                String range = formattedDate + "!A1:D1";
+                ValueRange requestBody = new ValueRange();
+                requestBody.setMajorDimension("ROWS");
+                requestBody.setRange(range);
+                List<Object> row1 = Arrays.asList((Object)"Timestamp", (Object)"Amount", (Object)"Details", (Object)"Name" );
+                requestBody.setValues(Arrays.asList(row1));
+                String valueInputOption = "USER_ENTERED";
+                Sheets.Spreadsheets.Values.Update valuesRequest =
+                        mService.spreadsheets().values().update(spreadsheetId, range, requestBody);
+                valuesRequest.setValueInputOption(valueInputOption);
+                valuesRequest.execute();
             }
 
             return results;
