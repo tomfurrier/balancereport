@@ -10,6 +10,7 @@ import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecovera
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.client.util.DateTime;
 import com.google.api.client.util.ExponentialBackOff;
 
 import com.google.api.services.sheets.v4.SheetsScopes;
@@ -28,6 +29,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.text.method.ScrollingMovementMethod;
@@ -43,10 +45,15 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
+
+import static com.tomfurrier.costreport.Constants.PREF_ACCOUNT_NAME;
+import static com.tomfurrier.costreport.Constants.SCOPES;
+import static com.tomfurrier.costreport.SmsReceiver.extractBalanceChange;
 
 public class SheetsActivity extends Activity
         implements EasyPermissions.PermissionCallbacks {
@@ -62,11 +69,6 @@ public class SheetsActivity extends Activity
     static final int REQUEST_PERMISSION_RECEIVE_SMS = 1004;
 
     private static final String BUTTON_TEXT = "Call Google Sheets API";
-    private static final String PREF_ACCOUNT_NAME = "accountName";
-    private static final String[] SCOPES = { SheetsScopes.SPREADSHEETS };
-
-    Intent smsServiceIntent;
-
     /**
      * Create the main activity.
      * @param savedInstanceState previously saved instance data.
@@ -124,6 +126,9 @@ public class SheetsActivity extends Activity
                 getApplicationContext(), Arrays.asList(SCOPES))
                 .setBackOff(new ExponentialBackOff());
 
+        //Log.i("regextest", extractBalanceChange("170317 19:00 Kártyás vásárlás: -424 HUF; TESCO !+" +
+         //       " OPN; Kártyaszám.... 11; Egyenleg: - OTPdirekt"));
+
         getResultsFromApi();
     }
 
@@ -164,9 +169,10 @@ public class SheetsActivity extends Activity
     private void chooseAccount() {
         if (EasyPermissions.hasPermissions(
                 this, Manifest.permission.GET_ACCOUNTS)) {
-            String accountName = getPreferences(Context.MODE_PRIVATE)
+            String accountName = PreferenceManager.getDefaultSharedPreferences(getApplicationContext())
                     .getString(PREF_ACCOUNT_NAME, null);
             if (accountName != null) {
+                Log.i("chooseAccount", "current accountName: " + accountName);
                 mCredential.setSelectedAccountName(accountName);
                 getResultsFromApi();
             } else {
@@ -233,7 +239,7 @@ public class SheetsActivity extends Activity
                             data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
                     if (accountName != null) {
                         SharedPreferences settings =
-                                getPreferences(Context.MODE_PRIVATE);
+                                PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
                         SharedPreferences.Editor editor = settings.edit();
                         editor.putString(PREF_ACCOUNT_NAME, accountName);
                         editor.apply();
@@ -396,12 +402,12 @@ public class SheetsActivity extends Activity
             Calendar c = Calendar.getInstance();
             SimpleDateFormat df = new SimpleDateFormat("yyyy. MM.");
             String formattedDate = df.format(c.getTime());
-
+            Date d = new Date();
             Boolean sheetExistsForCurrentDate = false;
             for (Sheet sheet : sheets) {
                 if (sheet.getProperties().getTitle().equals(formattedDate)) {
                     sheetExistsForCurrentDate = true;
-                    results.add("operation: sheet exists for current date: " + formattedDate);
+                    results.add("operation - " + d.toString() + " sheet exists for current date: " + formattedDate);
                     break;
                 }
             }
