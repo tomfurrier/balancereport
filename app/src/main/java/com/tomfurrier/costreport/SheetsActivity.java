@@ -97,7 +97,7 @@ public class SheetsActivity extends Activity
                 mCallApiButton.setEnabled(true);
             }
         });
-        activityLayout.addView(mCallApiButton);
+       // activityLayout.addView(mCallApiButton);
 
         mOutputText = new TextView(this);
         mOutputText.setLayoutParams(tlp);
@@ -115,7 +115,7 @@ public class SheetsActivity extends Activity
         activityLayout.addView(mOutputText);
 
         mProgress = new ProgressDialog(this);
-        mProgress.setMessage("Calling Google Sheets API ...");
+        mProgress.setMessage("Syncing with Google Sheets ...");
 
         setContentView(activityLayout);
 
@@ -124,8 +124,7 @@ public class SheetsActivity extends Activity
                 getApplicationContext(), Arrays.asList(SCOPES))
                 .setBackOff(new ExponentialBackOff());
 
-        smsServiceIntent = new Intent(SheetsActivity.this, SmsReceiverService.class);
-        SheetsActivity.this.startService(smsServiceIntent);
+        getResultsFromApi();
     }
 
 
@@ -140,12 +139,12 @@ public class SheetsActivity extends Activity
     private void getResultsFromApi() {
         if (! isGooglePlayServicesAvailable()) {
             acquireGooglePlayServices();
+        } else if (!EasyPermissions.hasPermissions(this, Manifest.permission.RECEIVE_SMS)) {
+            checkSmsPermissions();
         } else if (mCredential.getSelectedAccountName() == null) {
             chooseAccount();
         } else if (! isDeviceOnline()) {
             mOutputText.setText("No network connection available.");
-        } else if (!EasyPermissions.hasPermissions(this, Manifest.permission.RECEIVE_SMS)) {
-            checkSmsPermissions();
         } else {
             new MakeRequestTask(mCredential).execute();
         }
@@ -443,7 +442,7 @@ public class SheetsActivity extends Activity
             if (output == null || output.size() == 0) {
                 mOutputText.setText("No results returned.");
             } else {
-                output.add(0, "Data retrieved using the Google Sheets API:");
+                output.add(0, "Data retrieved:");
                 mOutputText.setText(TextUtils.join("\n", output));
             }
         }

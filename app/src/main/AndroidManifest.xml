@@ -32,10 +32,6 @@
             </intent-filter>
         </receiver>
 
-        <service
-            android:name="com.tomfurrier.costreport.SmsReceiverService"
-            android:enabled="true"
-            android:exported="true"></service>
     </application>
 
 </manifest>
