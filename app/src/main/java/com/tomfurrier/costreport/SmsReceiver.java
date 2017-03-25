@@ -1,6 +1,5 @@
 package com.tomfurrier.costreport;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -33,7 +32,7 @@ public class SmsReceiver extends WakefulBroadcastReceiver {
                     String senderNum = phoneNumber;
                     String message = currentMessage.getDisplayMessageBody();
 
-                    Log.i("SmsReceiver", "senderNum: "+ senderNum + "; message: " + message);
+                    Log.i("SmsReceiver", "pdusObj[" + i + "] senderNum: "+ senderNum + "; message: " + message);
 
 
                     // Show Alert

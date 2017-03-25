@@ -14,7 +14,7 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".SheetsActivity"
+            android:name="com.tomfurrier.costreport.SheetsActivity"
             android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -24,7 +24,7 @@
         </activity>
 
         <receiver
-            android:name=".SmsReceiver"
+            android:name="com.tomfurrier.costreport.SmsReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter android:priority="999">
@@ -33,7 +33,7 @@
         </receiver>
 
         <service
-            android:name=".SmsReceiverService"
+            android:name="com.tomfurrier.costreport.SmsReceiverService"
             android:enabled="true"
             android:exported="true"></service>
     </application>

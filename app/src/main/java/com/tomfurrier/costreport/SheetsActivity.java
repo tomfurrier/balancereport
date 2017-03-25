@@ -10,7 +10,6 @@ import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecovera
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
-import com.google.api.client.util.DateTime;
 import com.google.api.client.util.ExponentialBackOff;
 
 import com.google.api.services.sheets.v4.SheetsScopes;
@@ -32,6 +31,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.text.method.ScrollingMovementMethod;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -144,6 +144,8 @@ public class SheetsActivity extends Activity
             chooseAccount();
         } else if (! isDeviceOnline()) {
             mOutputText.setText("No network connection available.");
+        } else if (!EasyPermissions.hasPermissions(this, Manifest.permission.RECEIVE_SMS)) {
+            checkSmsPermissions();
         } else {
             new MakeRequestTask(mCredential).execute();
         }
@@ -167,8 +169,7 @@ public class SheetsActivity extends Activity
                     .getString(PREF_ACCOUNT_NAME, null);
             if (accountName != null) {
                 mCredential.setSelectedAccountName(accountName);
-                checkSmsPermissions();
-                //getResultsFromApi();
+                getResultsFromApi();
             } else {
                 // Start a dialog from which the user can choose an account
                 startActivityForResult(
@@ -190,8 +191,10 @@ public class SheetsActivity extends Activity
         if (EasyPermissions.hasPermissions(
                 this, Manifest.permission.RECEIVE_SMS)
                 ) {
+            Log.i("costreport","checkSmsPermissions: has Manifest.permission.RECEIVE_SMS");
             getResultsFromApi();
         } else {
+            Log.i("costreport","requestiong permission.. RECEIVE SMS");
             // Request the GET_ACCOUNTS permission via a user dialog
             EasyPermissions.requestPermissions(
                     this,
@@ -221,7 +224,7 @@ public class SheetsActivity extends Activity
                     mOutputText.setText(
                             "");
                 } else {
-                    getResultsFromApi();
+                    checkSmsPermissions();
                 }
                 break;
             case REQUEST_ACCOUNT_PICKER:
@@ -399,12 +402,15 @@ public class SheetsActivity extends Activity
             for (Sheet sheet : sheets) {
                 if (sheet.getProperties().getTitle().equals(formattedDate)) {
                     sheetExistsForCurrentDate = true;
+                    results.add("operation: sheet exists for current date: " + formattedDate);
                     break;
                 }
             }
 
             if (!sheetExistsForCurrentDate) {
                 List<Request> requests = new ArrayList<>();
+                results.add("operation: sheet does not exist for current date: " + formattedDate +
+                ". Adding new sheet...");
                 requests.add(new Request()
                         .setAddSheet(new AddSheetRequest()
                                 .setProperties(new SheetProperties()
@@ -416,6 +422,8 @@ public class SheetsActivity extends Activity
                 BatchUpdateSpreadsheetResponse response =
                         this.mService.spreadsheets().batchUpdate(spreadsheetId, body).execute();
                 AddSheetResponse addSheetResponse = response.getReplies().get(0).getAddSheet();
+                results.add("operation: sheet added with title: " + formattedDate +
+                        ", id: " + addSheetResponse.getProperties().getSheetId());
             }
 
             return results;
