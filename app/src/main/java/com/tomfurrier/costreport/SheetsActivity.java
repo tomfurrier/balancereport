@@ -59,10 +59,13 @@ public class SheetsActivity extends Activity
     static final int REQUEST_AUTHORIZATION = 1001;
     static final int REQUEST_GOOGLE_PLAY_SERVICES = 1002;
     static final int REQUEST_PERMISSION_GET_ACCOUNTS = 1003;
+    static final int REQUEST_PERMISSION_RECEIVE_SMS = 1004;
 
     private static final String BUTTON_TEXT = "Call Google Sheets API";
     private static final String PREF_ACCOUNT_NAME = "accountName";
     private static final String[] SCOPES = { SheetsScopes.SPREADSHEETS };
+
+    Intent smsServiceIntent;
 
     /**
      * Create the main activity.
@@ -120,6 +123,9 @@ public class SheetsActivity extends Activity
         mCredential = GoogleAccountCredential.usingOAuth2(
                 getApplicationContext(), Arrays.asList(SCOPES))
                 .setBackOff(new ExponentialBackOff());
+
+        smsServiceIntent = new Intent(SheetsActivity.this, SmsReceiverService.class);
+        SheetsActivity.this.startService(smsServiceIntent);
     }
 
 
@@ -161,7 +167,8 @@ public class SheetsActivity extends Activity
                     .getString(PREF_ACCOUNT_NAME, null);
             if (accountName != null) {
                 mCredential.setSelectedAccountName(accountName);
-                getResultsFromApi();
+                checkSmsPermissions();
+                //getResultsFromApi();
             } else {
                 // Start a dialog from which the user can choose an account
                 startActivityForResult(
@@ -175,6 +182,22 @@ public class SheetsActivity extends Activity
                     "This app needs to access your Google account (via Contacts).",
                     REQUEST_PERMISSION_GET_ACCOUNTS,
                     Manifest.permission.GET_ACCOUNTS);
+        }
+    }
+
+    @AfterPermissionGranted(REQUEST_PERMISSION_RECEIVE_SMS)
+    private void checkSmsPermissions() {
+        if (EasyPermissions.hasPermissions(
+                this, Manifest.permission.RECEIVE_SMS)
+                ) {
+            getResultsFromApi();
+        } else {
+            // Request the GET_ACCOUNTS permission via a user dialog
+            EasyPermissions.requestPermissions(
+                    this,
+                    "This app needs to access your incoming Text Messages",
+                    REQUEST_PERMISSION_RECEIVE_SMS,
+                    Manifest.permission.RECEIVE_SMS);
         }
     }
 
