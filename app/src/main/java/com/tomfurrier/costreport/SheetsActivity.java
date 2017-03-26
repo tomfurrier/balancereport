@@ -54,7 +54,7 @@ import pub.devrel.easypermissions.EasyPermissions;
 
 import static com.tomfurrier.costreport.Constants.PREF_ACCOUNT_NAME;
 import static com.tomfurrier.costreport.Constants.SCOPES;
-import static com.tomfurrier.costreport.SmsReceiver.extractBalanceChange;
+import static com.tomfurrier.costreport.Constants.SPREADSHEET_ID;
 
 public class SheetsActivity extends Activity
         implements EasyPermissions.PermissionCallbacks {
@@ -394,11 +394,9 @@ public class SheetsActivity extends Activity
          * @throws IOException
          */
         private List<String> getDataFromApi() throws IOException {
-
-            String spreadsheetId = "1qLFneJFtHfVrlvtH46-D84khkscrHODTB2NkJX3mAe4";
             List<String> results = new ArrayList<String>();
 
-            List<Sheet> sheets = this.mService.spreadsheets().get(spreadsheetId).execute().getSheets();
+            List<Sheet> sheets = this.mService.spreadsheets().get(SPREADSHEET_ID).execute().getSheets();
 
             Calendar c = Calendar.getInstance();
             SimpleDateFormat df = new SimpleDateFormat("yyyy. MM.");
@@ -426,7 +424,7 @@ public class SheetsActivity extends Activity
                 BatchUpdateSpreadsheetRequest body =
                         new BatchUpdateSpreadsheetRequest().setRequests(requests);
                 BatchUpdateSpreadsheetResponse response =
-                        this.mService.spreadsheets().batchUpdate(spreadsheetId, body).execute();
+                        this.mService.spreadsheets().batchUpdate(SPREADSHEET_ID, body).execute();
                 AddSheetResponse addSheetResponse = response.getReplies().get(0).getAddSheet();
                 results.add("operation: sheet added with title: " + formattedDate +
                         ", id: " + addSheetResponse.getProperties().getSheetId());
@@ -440,7 +438,7 @@ public class SheetsActivity extends Activity
                 requestBody.setValues(Arrays.asList(row1));
                 String valueInputOption = "USER_ENTERED";
                 Sheets.Spreadsheets.Values.Update valuesRequest =
-                        mService.spreadsheets().values().update(spreadsheetId, range, requestBody);
+                        mService.spreadsheets().values().update(SPREADSHEET_ID, range, requestBody);
                 valuesRequest.setValueInputOption(valueInputOption);
                 valuesRequest.execute();
             }
