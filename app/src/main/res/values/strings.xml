@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Cost Report</string>
+    <string name="app_name">Egyenlegkövető</string>
 
     <string name="error_permission_denied">This app requires permissions to View and manage your spreadsheets in Google Drive to function properly.</string>
     <string name="error_no_play_services">This app requires Google Play Services. Please install Google Play Services on your device and relaunch this app.</string>
